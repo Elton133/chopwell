@@ -3,10 +3,10 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Trash2, ArrowRight, Minus, Plus } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 
 type CartItem = {
-  id: string | number;
+  id: string;
   name: string;
   price: number;
   quantity: number;
@@ -28,7 +28,7 @@ function getInitialItemsFromSearchParams(searchParams: ReturnType<typeof useSear
     // Fallback demo items if user comes directly to /cart
     return [
       {
-        id: 1,
+        id: "1",
         name: "Nutrition-Dense Low-Fat Banku & Tilapia",
         price: 35,
         quantity: 1,
@@ -36,7 +36,7 @@ function getInitialItemsFromSearchParams(searchParams: ReturnType<typeof useSear
         customizations: ["No Salt", "Extra Spicy"],
       },
       {
-        id: 2,
+        id: "2",
         name: "Vegan Jollof Bowl",
         price: 30,
         quantity: 2,
@@ -58,7 +58,7 @@ function getInitialItemsFromSearchParams(searchParams: ReturnType<typeof useSear
   ];
 }
 
-export default function CartPage() {
+function CartContent() {
   const searchParams = useSearchParams();
   const initialItems = useMemo(() => getInitialItemsFromSearchParams(searchParams), [searchParams]);
 
@@ -68,13 +68,13 @@ export default function CartPage() {
   const deliveryFee = 10;
   const total = subtotal + deliveryFee;
 
-  const updateQuantity = (id: number, delta: number) => {
-    setItems(items.map(item => 
+  const updateQuantity = (id: string, delta: number) => {
+    setItems(items.map(item =>
       item.id === id ? { ...item, quantity: Math.max(1, item.quantity + delta) } : item
     ));
   };
 
-  const removeItem = (id: number) => {
+  const removeItem = (id: string) => {
     setItems(items.filter(item => item.id !== id));
   };
 
@@ -163,5 +163,22 @@ export default function CartPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function CartPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-4xl">
+            <h1 className="text-3xl font-bold text-gray-900 mb-4">Your Cart</h1>
+            <p className="text-gray-500">Loading your cart...</p>
+          </div>
+        </div>
+      }
+    >
+      <CartContent />
+    </Suspense>
   );
 }
