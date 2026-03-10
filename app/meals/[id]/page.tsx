@@ -1,13 +1,15 @@
 "use client";
 
-import { use, useState } from "react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Minus, Plus, ShoppingCart, Star, Clock, Flame, AlertCircle, Check } from "lucide-react";
 import { meals } from "@/lib/data";
 import { cn } from "@/lib/utils";
 
-export default function MealDetailsPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+export default function MealDetailsPage({ params }: { params: { id: string } }) {
+  const router = useRouter();
+  const { id } = params;
   const meal = meals.find((m) => m.id === id) || meals[0];
 
   const [quantity, setQuantity] = useState(1);
@@ -17,19 +19,35 @@ export default function MealDetailsPage({ params }: { params: Promise<{ id: stri
     noOnions: false,
   });
 
-  const ingredients = [
-    "Fresh Tilapia",
-    "Corn Dough",
-    "Cassava Dough",
+  const ingredients = meal.ingredients ?? [
+    "Fresh tilapia",
+    "Corn dough",
+    "Cassava dough",
     "Tomatoes",
     "Onions",
     "Pepper",
   ];
 
+  const handleAddToCart = () => {
+    const query = new URLSearchParams({
+      id: meal.id,
+      name: meal.name,
+      price: String(meal.price),
+      image: meal.image,
+      quantity: String(quantity),
+    });
+
+    if (customizations.noSalt) query.append("custom", "No Salt");
+    if (customizations.extraSpicy) query.append("custom", "Extra Spicy");
+    if (customizations.noOnions) query.append("custom", "No Onions");
+
+    router.push(`/cart?${query.toString()}`);
+  };
+
   return (
     <div className="min-h-screen bg-white pb-24">
       {/* Image Header */}
-      <div className="relative h-96 w-full">
+      <div className="relative h-80 sm:h-96 w-full">
         <img
           src={meal.image}
           alt={meal.name}
@@ -46,7 +64,7 @@ export default function MealDetailsPage({ params }: { params: Promise<{ id: stri
         </div>
       </div>
 
-      <div className="mx-auto -mt-12 max-w-4xl rounded-t-3xl bg-white px-6 pt-10 sm:px-8">
+      <div className="relative mx-auto -mt-10 max-w-4xl rounded-t-3xl bg-white px-6 pt-8 pb-12 sm:px-8 shadow-lg z-10">
         <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
           <div>
             <div className="flex items-center gap-2 mb-2">
@@ -166,7 +184,11 @@ export default function MealDetailsPage({ params }: { params: Promise<{ id: stri
               </div>
             </div>
 
-            <button className="w-full flex items-center justify-center rounded-full bg-primary py-4 text-base font-bold text-white shadow-lg transition-all hover:bg-primary-dark hover:-translate-y-1">
+            <button
+              type="button"
+              onClick={handleAddToCart}
+              className="w-full flex items-center justify-center rounded-full bg-primary py-4 text-base font-bold text-white shadow-lg transition-all hover:bg-primary-dark hover:-translate-y-1"
+            >
               <ShoppingCart className="mr-2 h-5 w-5" />
               Add to Order (GHS {(meal.price * quantity).toFixed(2)})
             </button>

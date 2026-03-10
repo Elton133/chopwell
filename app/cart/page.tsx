@@ -1,28 +1,68 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Trash2, ArrowRight, Minus, Plus } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+
+type CartItem = {
+  id: string | number;
+  name: string;
+  price: number;
+  quantity: number;
+  image: string;
+  customizations: string[];
+};
+
+function getInitialItemsFromSearchParams(searchParams: ReturnType<typeof useSearchParams>): CartItem[] {
+  if (!searchParams) return [];
+
+  const id = searchParams.get("id");
+  const name = searchParams.get("name");
+  const price = searchParams.get("price");
+  const image = searchParams.get("image");
+  const quantity = searchParams.get("quantity");
+  const customizations = searchParams.getAll("custom");
+
+  if (!id || !name || !price || !image) {
+    // Fallback demo items if user comes directly to /cart
+    return [
+      {
+        id: 1,
+        name: "Nutrition-Dense Low-Fat Banku & Tilapia",
+        price: 35,
+        quantity: 1,
+        image: "/assets/banku-and-tilapia.jpeg",
+        customizations: ["No Salt", "Extra Spicy"],
+      },
+      {
+        id: 2,
+        name: "Vegan Jollof Bowl",
+        price: 30,
+        quantity: 2,
+        image: "/assets/vegan-jollof-bowl.jpeg",
+        customizations: [],
+      },
+    ];
+  }
+
+  return [
+    {
+      id,
+      name,
+      price: Number(price),
+      quantity: Number(quantity || 1),
+      image,
+      customizations,
+    },
+  ];
+}
 
 export default function CartPage() {
-  const [items, setItems] = useState([
-    {
-      id: 1,
-      name: "Low-Salt Banku + Tilapia",
-      price: 35,
-      quantity: 1,
-      image: "https://images.unsplash.com/photo-1594041680534-e8c8cdebd659?auto=format&fit=crop&q=80&w=200",
-      customizations: ["No Salt", "Extra Spicy"],
-    },
-    {
-      id: 2,
-      name: "Vegan Jollof Bowl",
-      price: 30,
-      quantity: 2,
-      image: "https://images.unsplash.com/photo-1574484284008-be9d62827022?auto=format&fit=crop&q=80&w=200",
-      customizations: [],
-    },
-  ]);
+  const searchParams = useSearchParams();
+  const initialItems = useMemo(() => getInitialItemsFromSearchParams(searchParams), [searchParams]);
+
+  const [items, setItems] = useState<CartItem[]>(initialItems);
 
   const subtotal = items.reduce((acc, item) => acc + item.price * item.quantity, 0);
   const deliveryFee = 10;
