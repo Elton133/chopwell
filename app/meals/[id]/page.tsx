@@ -1,15 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Minus, Plus, ShoppingCart, Star, Clock, Flame, AlertCircle, Check } from "lucide-react";
 import { meals } from "@/lib/data";
 import { cn } from "@/lib/utils";
 
-export default function MealDetailsPage({ params }: { params: { id: string } }) {
+export default function MealDetailsPage() {
   const router = useRouter();
-  const { id } = params;
+  const params = useParams<{ id: string }>();
+  const id = params.id;
   const meal = meals.find((m) => m.id === id) || meals[0];
 
   const [quantity, setQuantity] = useState(1);
